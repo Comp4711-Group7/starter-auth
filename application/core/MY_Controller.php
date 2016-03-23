@@ -39,20 +39,43 @@ class Application extends CI_Controller {
 
 		// finally, build the browser page!
 		$this->data['data'] = &$this->data;
+		$this->data['sessionid'] = session_id();
 		$this->parser->parse('_template', $this->data);
 	}
 
 	// build menu choices depending on the user role
 	function makemenu()
 	{
+		$userrole = $this->session->userdata('userRole');
+
 		$choices = array();
 
 		$choices[] = array('name' => "Alpha", 'link' => '/alpha');
-		$choices[] = array('name' => "Beta", 'link' => '/beta');
-		$choices[] = array('name' => "Gamma", 'link' => '/gamma');
+		if ($userrole == 'user' || $userrole == 'admin')
+			$choices[] = array('name' => "Beta", 'link' => '/beta');
+		if($userrole == 'admin')
+			$choices[] = array('name' => "Gamma", 'link' => '/gamma');
+		if($userrole == '')
+			$choices[] = array('name' => "Login", 'link' => '/auth');
+		else
+			$choices[] = array('name' => "Logout", 'link' => '/auth/logout');
 		return $choices;
 	}
 
+	function restrict($roleNeeded = null) {
+		$userRole = $this->session->userdata('userRole');
+		if ($roleNeeded != null) {
+			if (is_array($roleNeeded)) {
+				if (!in_array($userRole, $roleNeeded)) {
+					redirect("/");
+					return;
+				}
+			} else if ($userRole != $roleNeeded) {
+				redirect("/");
+				return;
+			}
+		}
+	}
 }
 
 /* End of file MY_Controller.php */
